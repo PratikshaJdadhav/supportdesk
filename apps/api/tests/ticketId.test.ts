@@ -32,3 +32,9 @@ describe("generateTicketId", () => {
     );
   });
 });
+it("generates unique IDs for different ticket numbers", () => {
+  const firstId = generateTicketId(1);
+  const secondId = generateTicketId(2);
+
+  expect(firstId).not.toBe(secondId);
+});

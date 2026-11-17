@@ -1,0 +1,132 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum UserRole {
+  CUSTOMER
+  AGENT
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tickets         Ticket[]     @relation("TicketOwner")
+  assignedTickets Ticket[]     @relation("TicketAssignee")
+  comments        Comment[]
+  attachments     Attachment[] @relation("UploadedAttachments")
+  auditLogs       AuditLog[]
+}
+
+model Ticket {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String         @db.Text
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  userId      Int
+  assigneeId  Int?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user        User         @relation("TicketOwner", fields: [userId], references: [id])
+  assignee    User?        @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  comments    Comment[]
+  attachments Attachment[]
+  tags        TicketTag[]
+  auditLogs   AuditLog[]
+
+  @@index([userId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([priority])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  message   String   @db.Text
+  ticketId  Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([userId])
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  tickets TicketTag[]
+}
+
+model TicketTag {
+  ticketId   Int
+  tagId      Int
+  assignedAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([ticketId, tagId])
+  @@index([tagId])
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement())
+  fileName     String
+  filePath     String
+  ticketId     Int
+  uploadedById Int?
+  createdAt    DateTime @default(now())
+
+  ticket     Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy User?  @relation("UploadedAttachments", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  entityType String
+  entityId   String
+  details    Json?
+  userId     Int?
+  ticketId   Int?
+  createdAt  DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ticket Ticket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([ticketId])
+  @@index([entityType, entityId])
+}

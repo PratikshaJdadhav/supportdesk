@@ -5,3 +5,5 @@ coverage/
 .env.*
 !.env.example
 apps/api/samples/tickets.json
+
+/generated/prisma
