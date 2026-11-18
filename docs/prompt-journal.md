@@ -77,3 +77,14 @@
 - **Useful or Missing:** The AI helped identify areas to review. I needed to make sure suggestions matched the project requirements.
 - **Verification or Changes:** I reviewed the suggested changes against the existing code and project requirements.
 - **Outcome and Improvement:** I learned to use AI for code review without accepting every suggestion blindly. Next time, I will ask for focused changes and verify them with tests.
+### Entry 8 – Day 13 Frontend Foundations
+
+- **Date:** 18 November 2026
+- **Task:** Built the SupportDesk frontend foundation using React, Vite, TypeScript, and Tailwind CSS.
+- **Prompt Used:** Help me build the frontend foundation step by step. Create a shared API client, login and register pages, application layout, authentication context, and protected routes using the existing backend.
+- **AI Summary:** AI provided implementation guidance, code suggestions, and Git commands.
+- **Changes Made:** Created the frontend folder structure, shared API client, environment configuration, login and register pages, application layout, authentication context, and protected routes.
+- **Verification:** Login with the actual backend was successful. Dashboard access and logout were checked. `grep` confirmed that the only frontend `fetch()` call is inside the shared API client. `npm run build --prefix apps/web` completed successfully.
+- **AI Review:** Reviewed API call placement, environment configuration, Git changes, and build output. Further accessibility and automated test checks are pending.
+- **Learning:** Learned how React frontend authentication connects to an existing backend and how protected routes work.
+- **Follow-up:** How can I add automated frontend tests and improve accessibility?
