@@ -6,6 +6,7 @@ import helmet from "helmet";
 import cors from "cors";
 import ticketRoutes from "./routes/ticketRoutes";
 import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
 import { errorHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 
@@ -38,6 +39,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 // Health Check API
 app.get("/health", (req, res) => {

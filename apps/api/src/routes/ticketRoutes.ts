@@ -40,7 +40,7 @@ const router = Router();
  *       401:
  *         description: Unauthorized
  */
-router.post("/", requireAuth, ticketController.create);
+router.post("/", requireAuth, requireRole("CUSTOMER"), ticketController.create);
 
 /**
  * @swagger
@@ -155,7 +155,7 @@ router.get("/", requireAuth, ticketController.getAll);
  *       404:
  *         description: Ticket not found
  */
-router.post("/:ticketId/comments", requireAuth, commentController.create);
+router.post("/:ticketId/comments", requireAuth, requireRole("ADMIN"), commentController.create);
 router.get("/:ticketId/comments", requireAuth, commentController.getAll);
 
 /**
@@ -177,7 +177,7 @@ router.get("/:ticketId/comments", requireAuth, commentController.getAll);
 router.get(
   "/agent-only",
   requireAuth,
-  requireRole("AGENT"),
+requireRole("AGENT", "ADMIN"),
   (req, res) => {
     res.status(200).json({
       data: { message: "Agent access granted" },

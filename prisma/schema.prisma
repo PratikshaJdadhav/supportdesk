@@ -23,6 +23,7 @@ enum TicketPriority {
 enum UserRole {
   CUSTOMER
   AGENT
+  ADMIN
 }
 
 model User {

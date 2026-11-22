@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
 
-type UserRole = "CUSTOMER" | "AGENT";
+type UserRole = "CUSTOMER" | "AGENT" | "ADMIN";
 
 interface AuthPayload {
   userId: number;
@@ -33,7 +33,7 @@ export const requireAuth = (
     if (
       typeof decoded === "string" ||
       typeof decoded.userId !== "number" ||
-      !["CUSTOMER", "AGENT"].includes(decoded.role)
+      !["CUSTOMER", "AGENT", "ADMIN"].includes(decoded.role)
     ) {
       res.status(401).json({
         data: null,

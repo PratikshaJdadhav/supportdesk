@@ -1,11 +1,13 @@
 
+import { createTicketSchema } from "../../../../packages/shared/ticket.schema.js";
 import { Request, Response, NextFunction } from "express";
 import { ticketService } from "../services/ticketService";
 
 type AuthUser = {
   userId: number;
-  role: "CUSTOMER" | "AGENT";
+  role: "CUSTOMER" | "AGENT" | "ADMIN";
 };
+
 
 const getAuthUser = (res: Response): AuthUser =>
   res.locals.authUser as AuthUser;
@@ -14,9 +16,21 @@ export const ticketController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const user = getAuthUser(res);
+      const validation = createTicketSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        res.status(400).json({
+          data: null,
+          error: {
+            message: validation.error.issues.map((issue) => issue.message).join(", "),
+          },
+          meta: null,
+        });
+        return;
+      }
 
       const ticket = await ticketService.createTicket(
-        req.body,
+        validation.data,
         user.userId
       );
 
@@ -29,7 +43,8 @@ export const ticketController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
   try {
     const user = getAuthUser(res);
-    const userId = user.role === "AGENT" ? undefined : user.userId;
+ const userId =
+  user.role === "CUSTOMER" ? user.userId : undefined;
 
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
@@ -109,7 +124,7 @@ const tickets = await ticketService.getAllTickets(userId, {
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const user = getAuthUser(res);
-      const userId = user.role === "AGENT" ? undefined : user.userId;
+      const userId = user.role === "CUSTOMER" ? user.userId : undefined;
 
       const ticket = await ticketService.getTicketById(
         Number(req.params.id),
@@ -134,7 +149,7 @@ const tickets = await ticketService.getAllTickets(userId, {
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const user = getAuthUser(res);
-      const userId = user.role === "AGENT" ? undefined : user.userId;
+      const userId = user.role === "CUSTOMER" ? user.userId : undefined;
 
       const ticket = await ticketService.updateTicket(
         Number(req.params.id),
@@ -160,7 +175,7 @@ const tickets = await ticketService.getAllTickets(userId, {
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const user = getAuthUser(res);
-      const userId = user.role === "AGENT" ? undefined : user.userId;
+      const userId = user.role === "CUSTOMER" ? user.userId : undefined;
 
       const deleted = await ticketService.deleteTicket(
         Number(req.params.id),

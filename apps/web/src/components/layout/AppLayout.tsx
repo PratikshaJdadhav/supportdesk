@@ -1,14 +1,22 @@
-import { Outlet, useNavigate, Link } from "react-router-dom";
+import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/context/AuthContext";
 
 function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   function handleLogout() {
     logout();
     navigate("/login");
   }
+
+  const navClass = (path: string) =>
+    `flex items-center gap-3 rounded-xl px-4 py-3 font-semibold transition ${
+      location.pathname === path
+        ? "bg-indigo-50 text-indigo-700"
+        : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
+    }`;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -27,13 +35,41 @@ function AppLayout() {
           Workspace
         </p>
 
-        <Link
-          to="/"
-          className="flex items-center gap-3 rounded-xl bg-indigo-50 px-4 py-3 font-semibold text-indigo-700"
-        >
-          <span>▦</span>
-          Overview
-        </Link>
+        <nav className="space-y-2">
+          <Link to="/" className={navClass("/")}>
+            <span>▦</span>
+            Overview
+          </Link>
+
+          {user?.role === "ADMIN" && (
+            <>
+              <Link to="/customers" className={navClass("/customers")}>
+                <span>♙</span>
+                Customers
+              </Link>
+
+              <Link to="/tickets" className={navClass("/tickets")}>
+                <span>▤</span>
+                Tickets
+              </Link>
+
+              <Link to="/agents" className={navClass("/agents")}>
+                <span>♧</span>
+                Agents
+              </Link>
+            </>
+          )}
+
+          {user?.role === "CUSTOMER" && (
+            <Link
+              to="/?createTicket=true"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 font-semibold text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+            >
+              <span>＋</span>
+              Create Ticket
+            </Link>
+          )}
+        </nav>
 
         <div className="absolute bottom-6 left-6 right-6 rounded-xl bg-slate-50 p-4">
           <p className="text-xs text-slate-500">Signed in as</p>

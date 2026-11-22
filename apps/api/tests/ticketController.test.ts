@@ -25,6 +25,7 @@ describe("Ticket Controller Unit Tests", () => {
       body: {
         title: "Test ticket",
         description: "Test description",
+        priority: "MEDIUM",
       },
       params: { id: "1" },
       query: {},

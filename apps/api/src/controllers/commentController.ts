@@ -4,7 +4,7 @@ import { ticketService } from "../services/ticketService";
 
 type AuthUser = {
   userId: number;
-  role: "CUSTOMER" | "AGENT";
+  role: "CUSTOMER" | "AGENT" | "ADMIN";
 };
 
 const getAuthUser = (res: Response): AuthUser =>
@@ -26,7 +26,7 @@ export const commentController = {
         return;
       }
 
-      const userId = user.role === "AGENT" ? undefined : user.userId;
+      const userId = user.role === "AGENT" || user.role === "ADMIN" ? undefined : user.userId;
       const ticket = await ticketService.getTicketById(ticketId, userId);
 
       if (!ticket) {
@@ -64,7 +64,7 @@ export const commentController = {
         return;
       }
 
-      const userId = user.role === "AGENT" ? undefined : user.userId;
+      const userId = user.role === "AGENT" || user.role === "ADMIN" ? undefined : user.userId;
       const ticket = await ticketService.getTicketById(ticketId, userId);
 
       if (!ticket) {
