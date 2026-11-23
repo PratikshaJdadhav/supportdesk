@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../features/auth/context/AuthContext";
+import { Button } from "../components/ui/Button";
+import { Badge } from "../components/ui/Badge";
 import {
   getTicketById,
   getTicketComments,
@@ -62,9 +64,9 @@ function TicketDetailPage() {
             ? ticketQuery.error.message
             : "Ticket not found."}
         </p>
-        <button onClick={() => navigate("/")} className="mt-4 text-indigo-600">
-          Back to Dashboard
-        </button>
+          <Button onClick={() => navigate("/")} variant="secondary" className="mt-4">
+            Back to Dashboard
+          </Button>
       </div>
     );
   }
@@ -74,9 +76,9 @@ function TicketDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <button onClick={() => navigate("/")} className="text-sm text-indigo-600">
-        ← Back to Dashboard
-      </button>
+        <Button onClick={() => navigate("/")} variant="secondary" className="text-sm">
+          ← Back to Dashboard
+        </Button>
 
       <section className="rounded-2xl border bg-white p-6 shadow-sm">
         <div className="flex flex-wrap justify-between gap-4">
@@ -84,13 +86,9 @@ function TicketDetailPage() {
             <p className="text-sm text-slate-500">Ticket #{ticket.id}</p>
             <h2 className="mt-2 text-2xl font-bold">{ticket.title}</h2>
           </div>
-          <div className="flex gap-2">
-            <span className="h-fit rounded-lg bg-indigo-50 px-3 py-2 text-sm">
-              {ticket.priority}
-            </span>
-            <span className="h-fit rounded-lg bg-slate-100 px-3 py-2 text-sm">
-              {ticket.status.replace("_", " ")}
-            </span>
+          <div className="flex flex-wrap gap-2">
+            <Badge type="priority" value={ticket.priority} />
+            <Badge type="status" value={ticket.status} />
           </div>
         </div>
 
@@ -104,8 +102,9 @@ function TicketDetailPage() {
 
         {canUpdateStatus && (
           <div className="mt-5">
-            <label className="mb-2 block text-sm font-medium">Update Status</label>
+              <label htmlFor="ticket-status" className="mb-2 block text-sm font-medium">Update Status</label>
             <select
+                id="ticket-status"
               value={ticket.status}
               disabled={statusMutation.isPending}
               onChange={(event) =>
@@ -155,32 +154,34 @@ function TicketDetailPage() {
           ))}
         </div>
 
-        {user?.role === "ADMIN" && (
-        <form
-          className="mt-6 space-y-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (message.trim()) commentMutation.mutate();
-          }}
-        >
-          <label className="block text-sm font-medium">Add Comment</label>
-          <textarea
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            rows={3}
-            placeholder="Write your comment..."
-            className="w-full rounded-xl border p-3"
-          />
+          {user?.role === "ADMIN" && (
+            <form
+              className="mt-6 space-y-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (message.trim()) commentMutation.mutate();
+              }}
+            >
+              <label htmlFor="ticket-comment" className="block text-sm font-medium">Add Comment</label>
+              <textarea
+                id="ticket-comment"
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                rows={3}
+                placeholder="Write your comment..."
+                className="w-full rounded-xl border p-3"
+              />
           {commentMutation.isError && (
             <p className="text-sm text-red-600">Failed to add comment.</p>
           )}
-          <button
+          <Button
             type="submit"
-            disabled={!message.trim() || commentMutation.isPending}
-            className="rounded-xl bg-indigo-600 px-5 py-3 text-white disabled:opacity-50"
+            disabled={!message.trim()}
+            loading={commentMutation.isPending}
+            className="rounded-xl px-5 py-3"
           >
-            {commentMutation.isPending ? "Sending..." : "Send Comment"}
-          </button>
+            Send Comment
+          </Button>
         </form>
         )}
       </section>

@@ -10,6 +10,11 @@ import {
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../features/auth/context/AuthContext";
+import { Button } from "../components/ui/Button";
+import { Badge } from "../components/ui/Badge";
+import { Input } from "../components/ui/Input";
+import { Table } from "../components/ui/Table";
+import { Modal } from "../components/ui/Modal";
 import {
   getAllTickets,
   createTicket,
@@ -52,6 +57,7 @@ function DashboardPage() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [ticketToClose, setTicketToClose] = useState<number | null>(null);
 
   const {
     register,
@@ -156,14 +162,15 @@ function DashboardPage() {
         </div>
 
         {user?.role === "CUSTOMER" && (
-          <button
+          <Button
             onClick={() => setShowForm(!showForm)}
-            className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+            className="rounded-xl px-5 py-3"
           >
             {showForm ? "Close Form" : "+ Create Ticket"}
-          </button>
+          </Button>
         )}
       </section>
+
 
       {showForm && user?.role === "CUSTOMER" && (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -171,63 +178,58 @@ function DashboardPage() {
             Create New Ticket
           </h3>
 
-          <form onSubmit={handleSubmit(handleCreateTicket)} className="mt-5 space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Ticket Title
-              </label>
-              <input
+            <form onSubmit={handleSubmit(handleCreateTicket)} className="mt-5 space-y-4">
+              <Input
+                label="Ticket Title"
                 type="text"
-                {...register("title")}
                 placeholder="Enter ticket title"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"
+                error={errors.title?.message}
+                {...register("title")}
               />
-              {errors.title && (
-                <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-              )}
-            </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Description
-              </label>
-              <textarea
-                rows={4}
-                {...register("description")}
-                placeholder="Describe the issue..."
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-              )}
-            </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Description
+                </label>
+                <textarea
+                  rows={4}
+                  {...register("description")}
+                  placeholder="Describe the issue..."
+                  aria-invalid={Boolean(errors.description)}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"
+                />
+                {errors.description && (
+                  <p role="alert" className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                )}
+              </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Priority
-              </label>
-              <select
-                {...register("priority")}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"
-              >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-              </select>
-              {errors.priority && (
-                <p className="mt-1 text-sm text-red-600">{errors.priority.message}</p>
-              )}
-            </div>
-
-            <button
+              <div>
+                <label htmlFor="ticket-priority" className="mb-2 block text-sm font-medium text-slate-700">
+                  Priority
+                </label>
+                <select
+                    id="ticket-priority"
+                  {...register("priority")}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"
+                >
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                </select>
+                {errors.priority && (
+                  <p role="alert" className="mt-1 text-sm text-red-600">{errors.priority.message}</p>
+                )}
+              </div>
+            <Button
               type="submit"
-              disabled={saving}
-              className="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+              loading={saving}
+              className="rounded-xl px-6 py-3"
             >
-              {saving ? "Creating..." : "Create Ticket"}
-            </button>
+              Create Ticket
+            </Button>
           </form>
         </section>
+
       )}
 
       {(error || queryError) && (
@@ -272,13 +274,15 @@ function DashboardPage() {
         </div>
       </section>
 
+
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 className="text-lg font-bold text-slate-900">
           {isAdmin ? "All Tickets" : "Recent Tickets"}
         </h3>
 
-        <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-          <input
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Input
+            label="Search tickets"
             type="text"
             value={search}
             onChange={(event) => {
@@ -286,40 +290,30 @@ function DashboardPage() {
               setPage(1);
             }}
             placeholder="Search tickets..."
-            className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-indigo-500"
           />
 
-          <select
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as typeof status);
-              setPage(1);
-            }}
-            className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
-          >
-            <option value="">All Statuses</option>
-            <option value="OPEN">Open</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="CLOSED">Closed</option>
-          </select>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="filter-status" className="text-sm font-medium text-slate-700">Status Filter</label>
+            <select id="filter-status" value={status} onChange={(event) => { setStatus(event.target.value as typeof status); setPage(1); }} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm">
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
 
-          <select
-            value={priority}
-            onChange={(event) => {
-              setPriority(event.target.value as typeof priority);
-              setPage(1);
-            }}
-            className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
-          >
-            <option value="">All Priorities</option>
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="filter-priority" className="text-sm font-medium text-slate-700">Priority Filter</label>
+            <select id="filter-priority" value={priority} onChange={(event) => { setPriority(event.target.value as typeof priority); setPage(1); }} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm">
+              <option value="">All Priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+            </select>
+          </div>
         </div>
 
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full text-left text-sm">
+        <Table>
             <thead className="border-y border-slate-100 text-xs uppercase text-slate-400">
               <tr>
                 <th className="py-4">Ticket</th>
@@ -350,8 +344,8 @@ function DashboardPage() {
                       #{ticket.id}
                     </td>
                     <td className="py-4 text-slate-700">{ticket.title}</td>
-                    <td className="py-4">{ticket.priority}</td>
-                    <td className="py-4">{ticket.status.replace("_", " ")}</td>
+                    <td className="py-4"><Badge type="priority" value={ticket.priority} /></td>
+                    <td className="py-4"><Badge type="status" value={ticket.status} /></td>
                     <td className="py-4">
                       <Link
                         to={`/tickets/${ticket.id}`}
@@ -361,7 +355,7 @@ function DashboardPage() {
                       </Link>
                       {ticket.status === "OPEN" && (
                         <button
-                          onClick={() => handleCloseTicket(ticket.id)}
+                          onClick={() => setTicketToClose(ticket.id)}
                           className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700"
                         >
                           Close Ticket
@@ -375,8 +369,7 @@ function DashboardPage() {
                 ))
               )}
             </tbody>
-          </table>
-        </div>
+        </Table>
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-slate-500">
@@ -386,26 +379,52 @@ function DashboardPage() {
           </p>
 
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="secondary"
               type="button"
               disabled={page <= 1 || loading}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
               Previous
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="secondary"
               type="button"
               disabled={page >= (pagination?.totalPages ?? 1) || loading}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
-            </button>
+            </Button>
           </div>
         </div>
       </section>
+
+      <Modal
+        isOpen={ticketToClose !== null}
+        title="Close ticket?"
+        description="Are you sure you want to close this ticket? This action changes its status to Closed."
+        onClose={() => setTicketToClose(null)}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setTicketToClose(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (ticketToClose === null) return;
+                await handleCloseTicket(ticketToClose);
+                setTicketToClose(null);
+              }}
+            >
+              Confirm Close
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-700">Please confirm before closing this ticket.</p>
+      </Modal>
     </div>
   );
 }

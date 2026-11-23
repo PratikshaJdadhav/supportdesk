@@ -5,6 +5,7 @@ import {
   type LoginCredentials,
 } from "../features/auth/api/authApi";
 import { useAuth } from "../features/auth/context/AuthContext";
+import { Input } from "../components/ui/Input";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -52,47 +53,32 @@ function LoginPage() {
           </p>
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
-            Email address
-          </label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            {...register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Enter a valid email address",
-              },
-            })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
+        <Input
+          label="Email address"
+          type="email"
+          placeholder="Enter your email"
+          autoComplete="email"
+          error={errors.email?.message}
+          {...register("email", {
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Enter a valid email address",
+            },
+          })}
+        />
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            {...register("password", {
-              required: "Password is required",
-            })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-          {errors.password && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
+        <Input
+          label="Password"
+          type="password"
+          placeholder="Enter your password"
+          autoComplete="current-password"
+          error={errors.password?.message}
+          {...register("password", {
+            required: "Password is required",
+          })}
+        />
+
 
         {errors.root?.server && (
           <p className="text-sm text-red-600">

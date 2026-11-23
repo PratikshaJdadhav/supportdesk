@@ -5,6 +5,7 @@ import {
   type RegisterCredentials,
 } from "../features/auth/api/authApi";
 import { useAuth } from "../features/auth/context/AuthContext";
+import { Input } from "../components/ui/Input";
 
 function RegisterPage() {
   const { login } = useAuth();
@@ -51,71 +52,51 @@ function RegisterPage() {
             Join SupportDesk and manage your support activity
           </p>
         </div>
+        <Input
+          label="Full name"
+          type="text"
+          placeholder="Enter your full name"
+          autoComplete="name"
+          error={errors.name?.message}
+          {...register("name", {
+            required: "Name is required",
+            minLength: {
+              value: 2,
+              message: "Name must be at least 2 characters",
+            },
+          })}
+        />
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
-            Full name
-          </label>
-          <input
-            type="text"
-            placeholder="Enter your full name"
-            {...register("name", {
-              required: "Name is required",
-              minLength: {
-                value: 2,
-                message: "Name must be at least 2 characters",
-              },
-            })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-          )}
-        </div>
+        <Input
+          label="Email address"
+          type="email"
+          placeholder="Enter your email"
+          autoComplete="email"
+          error={errors.email?.message}
+          {...register("email", {
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Enter a valid email address",
+            },
+          })}
+        />
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
-            Email address
-          </label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            {...register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Enter a valid email address",
-              },
-            })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-          )}
-        </div>
+        <Input
+          label="Password"
+          type="password"
+          placeholder="Create a password"
+          autoComplete="new-password"
+          error={errors.password?.message}
+          {...register("password", {
+            required: "Password is required",
+            minLength: {
+              value: 8,
+              message: "Password must be at least 8 characters",
+            },
+          })}
+        />
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="Create a password"
-            {...register("password", {
-              required: "Password is required",
-              minLength: {
-                value: 8,
-                message: "Password must be at least 8 characters",
-              },
-            })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-          {errors.password && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
 
         {errors.root?.server && (
           <p className="text-sm text-red-600">{errors.root.server.message}</p>
