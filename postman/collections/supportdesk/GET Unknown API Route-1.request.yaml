@@ -1,0 +1,6 @@
+$kind: http-request
+name: GET Unknown API Route
+description: ""
+url: http://localhost:3000/api/unknown
+method: GET
+order: 14000

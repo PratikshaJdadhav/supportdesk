@@ -1,0 +1,9 @@
+$kind: http-request
+name: POST Empty Body
+description: ""
+url: http://localhost:3000/api/tickets
+method: POST
+body:
+  type: json
+  content: ""
+order: 15000
