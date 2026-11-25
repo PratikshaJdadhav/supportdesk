@@ -9,6 +9,9 @@ import {
   getTicketComments,
   createTicketComment,
   updateTicketStatus,
+  classifyTicket,
+  streamSuggestedReply,
+  type TicketClassification,
 } from "../features/tickets/api/ticketApi";
 
 function TicketDetailPage() {
@@ -16,8 +19,15 @@ function TicketDetailPage() {
   const navigate = useNavigate();
   const { user, token } = useAuth();
   const queryClient = useQueryClient();
+
   const [message, setMessage] = useState("");
+  const [suggestedReply, setSuggestedReply] = useState("");
+  const [classification, setClassification] =
+    useState<TicketClassification | null>(null);
+  const [replyError, setReplyError] = useState("");
+
   const id = Number(ticketId);
+  const isAgent = user?.role === "AGENT";
 
   const ticketQuery = useQuery({
     queryKey: ["ticket", id, token],
@@ -48,6 +58,31 @@ function TicketDetailPage() {
     },
   });
 
+  const suggestReplyMutation = useMutation({
+    mutationFn: () =>
+      streamSuggestedReply(id, token!, (chunk) => {
+        setSuggestedReply((previous) => previous + chunk);
+      }),
+    onMutate: () => {
+      setSuggestedReply("");
+      setReplyError("");
+    },
+    onError: (error) => {
+      setReplyError(
+        error instanceof Error ? error.message : "Reply generation failed.",
+      );
+    },
+  });
+
+  const classifyMutation = useMutation({
+    mutationFn: () => classifyTicket(id, token!),
+    onSuccess: async (result) => {
+      setClassification(result.data);
+      await queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+      await queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    },
+  });
+
   if (!Number.isInteger(id) || id < 1) {
     return <p className="p-6 text-red-600">Invalid ticket ID.</p>;
   }
@@ -64,9 +99,13 @@ function TicketDetailPage() {
             ? ticketQuery.error.message
             : "Ticket not found."}
         </p>
-          <Button onClick={() => navigate("/")} variant="secondary" className="mt-4">
-            Back to Dashboard
-          </Button>
+        <Button
+          onClick={() => navigate("/")}
+          variant="secondary"
+          className="mt-4"
+        >
+          Back to Dashboard
+        </Button>
       </div>
     );
   }
@@ -76,9 +115,13 @@ function TicketDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-        <Button onClick={() => navigate("/")} variant="secondary" className="text-sm">
-          ← Back to Dashboard
-        </Button>
+      <Button
+        onClick={() => navigate("/")}
+        variant="secondary"
+        className="text-sm"
+      >
+        ← Back to Dashboard
+      </Button>
 
       <section className="rounded-2xl border bg-white p-6 shadow-sm">
         <div className="flex flex-wrap justify-between gap-4">
@@ -102,9 +145,14 @@ function TicketDetailPage() {
 
         {canUpdateStatus && (
           <div className="mt-5">
-              <label htmlFor="ticket-status" className="mb-2 block text-sm font-medium">Update Status</label>
+            <label
+              htmlFor="ticket-status"
+              className="mb-2 block text-sm font-medium"
+            >
+              Update Status
+            </label>
             <select
-                id="ticket-status"
+              id="ticket-status"
               value={ticket.status}
               disabled={statusMutation.isPending}
               onChange={(event) =>
@@ -119,11 +167,85 @@ function TicketDetailPage() {
               <option value="CLOSED">Closed</option>
             </select>
             {statusMutation.isError && (
-              <p className="mt-2 text-sm text-red-600">Status update failed.</p>
+              <p className="mt-2 text-sm text-red-600">
+                Status update failed.
+              </p>
             )}
           </div>
         )}
       </section>
+
+      {isAgent && (
+        <section className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
+          <h3 className="text-xl font-bold">AI Assistant</h3>
+          <p className="text-sm text-slate-500">
+            Generate a reply draft or classify this ticket using AI.
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={() => suggestReplyMutation.mutate()}
+              disabled={suggestReplyMutation.isPending}
+              loading={suggestReplyMutation.isPending}
+            >
+              Suggest Reply
+            </Button>
+
+            <Button
+              onClick={() => classifyMutation.mutate()}
+              disabled={classifyMutation.isPending}
+              loading={classifyMutation.isPending}
+            >
+              Auto-categorise + Priority
+            </Button>
+          </div>
+
+          {replyError && (
+            <p className="text-sm text-red-600">{replyError}</p>
+          )}
+
+          {suggestedReply && (
+            <div className="space-y-2">
+              <label
+                htmlFor="ai-reply-draft"
+                className="block text-sm font-semibold"
+              >
+                Suggested Reply Draft
+              </label>
+              <textarea
+                id="ai-reply-draft"
+                value={suggestedReply}
+                readOnly
+                rows={6}
+                className="w-full rounded-xl border bg-slate-50 p-3 text-slate-700"
+              />
+              <p className="text-xs text-slate-500">
+                This is only a draft. Review and send it manually.
+              </p>
+            </div>
+          )}
+
+          {classifyMutation.isError && (
+            <p className="text-sm text-red-600">
+              {classifyMutation.error instanceof Error
+                ? classifyMutation.error.message
+                : "Ticket classification failed."}
+            </p>
+          )}
+
+          {classification && (
+            <div className="rounded-xl bg-slate-50 p-4">
+              <p className="font-semibold">AI Classification Result</p>
+              <p className="mt-2 text-sm">
+                Category: <strong>{classification.category}</strong>
+              </p>
+              <p className="mt-1 text-sm">
+                Priority: <strong>{classification.priority}</strong>
+              </p>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="rounded-2xl border bg-white p-6 shadow-sm">
         <h3 className="text-xl font-bold">Comments</h3>
@@ -154,35 +276,40 @@ function TicketDetailPage() {
           ))}
         </div>
 
-          {user?.role === "ADMIN" && (
-            <form
-              className="mt-6 space-y-3"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (message.trim()) commentMutation.mutate();
-              }}
-            >
-              <label htmlFor="ticket-comment" className="block text-sm font-medium">Add Comment</label>
-              <textarea
-                id="ticket-comment"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                rows={3}
-                placeholder="Write your comment..."
-                className="w-full rounded-xl border p-3"
-              />
-          {commentMutation.isError && (
-            <p className="text-sm text-red-600">Failed to add comment.</p>
-          )}
-          <Button
-            type="submit"
-            disabled={!message.trim()}
-            loading={commentMutation.isPending}
-            className="rounded-xl px-5 py-3"
+        {user?.role === "ADMIN" && (
+          <form
+            className="mt-6 space-y-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (message.trim()) commentMutation.mutate();
+            }}
           >
-            Send Comment
-          </Button>
-        </form>
+            <label
+              htmlFor="ticket-comment"
+              className="block text-sm font-medium"
+            >
+              Add Comment
+            </label>
+            <textarea
+              id="ticket-comment"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              rows={3}
+              placeholder="Write your comment..."
+              className="w-full rounded-xl border p-3"
+            />
+            {commentMutation.isError && (
+              <p className="text-sm text-red-600">Failed to add comment.</p>
+            )}
+            <Button
+              type="submit"
+              disabled={!message.trim() || commentMutation.isPending}
+              loading={commentMutation.isPending}
+              className="rounded-xl px-5 py-3"
+            >
+              Send Comment
+            </Button>
+          </form>
         )}
       </section>
     </div>

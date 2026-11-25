@@ -54,3 +54,36 @@ describe("API Integration Tests", () => {
     expect(response.body.error.message).toBe("Email already registered");
   });
 });
+
+describe("AI API Authentication", () => {
+  test("POST /api/ai/tickets/1/classify should reject unauthenticated requests", async () => {
+    const response = await request(app)
+      .post("/api/ai/tickets/1/classify");
+
+    expect(response.status).toBe(401);
+    expect(response.body.error.message).toBe(
+      "Authentication token required"
+    );
+  });
+
+  test("POST /api/ai/tickets/1/classify should reject CUSTOMER role", async () => {
+    const email = `ai_customer_${Date.now()}@example.com`;
+
+    const registerResponse = await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "AI Test Customer",
+        email,
+        password: "Password123",
+      });
+
+    const token = registerResponse.body.data.token;
+
+    const response = await request(app)
+      .post("/api/ai/tickets/1/classify")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.message).toBe("Access forbidden");
+  });
+});

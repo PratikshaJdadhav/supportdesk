@@ -88,3 +88,37 @@
 - **AI Review:** Reviewed API call placement, environment configuration, Git changes, and build output. Further accessibility and automated test checks are pending.
 - **Learning:** Learned how React frontend authentication connects to an existing backend and how protected routes work.
 - **Follow-up:** How can I add automated frontend tests and improve accessibility?
+
+### Entry 9 – Day 16 AI Features
+
+- **Date:** 24 November 2026
+- **Task:** Implemented the SupportDesk AI backend foundation for reply suggestions and ticket classification.
+- **Prompt Used:** Help me implement AI Suggest Reply streaming, AI ticket categorisation and priority prediction, Zod validation, provider abstraction, and unit tests without sending replies automatically.
+- **AI Summary:** Implemented a mock AI provider, ticket context retrieval with latest comments, streamed reply suggestions, and structured ticket classification.
+- **Changes Made:** Added AI provider interfaces, mock provider, versioned prompt files, Zod classification schema, AI service, AI controller, and authenticated AI routes. Added the optional ticket category field and applied the database migration.
+- **Verification:** `npm run build` passed. Full API test suite passed: 11 test suites and 55 tests. AI service tests passed: 4 tests.
+- **Limitations:** Live OpenAI integration and real token usage/cost tracking are pending because API credentials and the monthly spend limit have not yet been provided. Mock usage is not reported as real provider usage.
+- **Learning:** Learned provider abstraction, streamed AI responses, JSON validation with Zod, and testing AI services using mocks.
+- **Follow-up:** Complete live provider integration, usage tracking, authenticated route tests, and frontend AI integration after receiving the required API configuration.
+
+### Entry 10 – Additional AI Tests
+- Date: 24 Nov 2026
+- Added streaming reply draft test.
+- Added AI provider failure test.
+- Added usage tracker tests for mock usage exclusion and token-based cost calculation.
+- Verification: API build successful; 12 test suites and 61 tests passed.
+- Note: Live OpenAI integration and actual provider usage remain pending API credentials and approved budget configuration.
+
+### Entry 11 – Day 16 AI Features Completion
+- Date: 24 Nov 2026
+- Added Agent-only AI Suggest Reply with streamed draft output.
+- Added Agent-only AI ticket categorisation and priority classification.
+- Reply drafts require human review; no automatic sending.
+- Classification output is validated with Zod before saving.
+- Admin and Customer AI controls remain hidden.
+- Frontend production build successful.
+- API TypeScript build successful.
+- Verification: 12 test suites passed; 64 tests passed.
+- AI provider remains in mock mode. Live OpenAI integration requires approved credentials.
+- AI usage cost remains unpriced until official model pricing is configured.
+- Jest reported an open-handle warning after tests completed; follow-up investigation pending.

@@ -28,6 +28,15 @@ export const commentRepository = {
     });
   },
 
+  findLatestByTicketId(ticketId: number) {
+    return prisma.comment.findMany({
+      where: { ticketId },
+      take: 10,
+      orderBy: { createdAt: "desc" },
+      select: { message: true },
+    }).then((comments) => comments.reverse());
+  },
+
   findByTicketId(ticketId: number) {
     return prisma.comment.findMany({
       where: { ticketId },
