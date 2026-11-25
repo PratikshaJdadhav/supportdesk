@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://localhost:3000/api/tickets/1/comments
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"pratiksha.new@gmail.com\",\r
+
+    \  \"password\": \"Test@12345\"\r
+
+    }"
+order: 33000
