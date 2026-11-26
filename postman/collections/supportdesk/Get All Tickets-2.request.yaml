@@ -1,0 +1,6 @@
+$kind: http-request
+name: Get All Tickets
+description: ""
+url: http://localhost:3000/api/tickets
+method: GET
+order: 19000

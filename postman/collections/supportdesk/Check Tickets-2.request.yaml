@@ -1,0 +1,9 @@
+$kind: http-request
+name: Check Tickets
+description: ""
+url: http://localhost:3000/api/tickets/1
+method: GET
+body:
+  type: json
+  content: ""
+order: 24000
