@@ -1,3 +1,4 @@
+
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { env } from "../../../config/env";
@@ -8,6 +9,8 @@ import type {
   TicketContext,
 } from "./ai-provider";
 
+const AI_TIMEOUT_MS = 30_000;
+
 export class GeminiProvider implements AIProvider {
   private async getClient() {
     if (!env.GEMINI_API_KEY) {
@@ -15,7 +18,12 @@ export class GeminiProvider implements AIProvider {
     }
 
     const { GoogleGenAI } = await import("@google/genai");
-    return new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+    return new GoogleGenAI({
+      apiKey: env.GEMINI_API_KEY,
+      httpOptions: {
+        timeout: AI_TIMEOUT_MS,
+      },
+    });
   }
 
   private async readPrompt(fileName: string): Promise<string> {
@@ -32,28 +40,41 @@ export class GeminiProvider implements AIProvider {
     const client = await this.getClient();
     const instructions = await this.readPrompt("suggest-reply.v1.md");
 
-    const stream = await client.models.generateContentStream({
-      model: env.GEMINI_MODEL,
-      contents: `${instructions}\n\nTicket:\n${JSON.stringify(ticket)}`,
-      config: { maxOutputTokens: 300 },
-    });
+    try {
+      const stream = await client.models.generateContentStream({
+        model: env.GEMINI_MODEL,
+        contents: `${instructions}\n\n<untrusted_ticket_data>\n${JSON.stringify(ticket)}\n</untrusted_ticket_data>`,
+        config: { maxOutputTokens: 300 },
+      });
 
-    let inputTokens = 0;
-    let outputTokens = 0;
-    let totalTokens = 0;
+      let inputTokens = 0;
+      let outputTokens = 0;
+      let totalTokens = 0;
 
-    for await (const chunk of stream) {
-      if (chunk.text) yield chunk.text;
+      for await (const chunk of stream) {
+        if (chunk.text) yield chunk.text;
 
-      if (chunk.usageMetadata) {
-        inputTokens = chunk.usageMetadata.promptTokenCount ?? inputTokens;
-        outputTokens = chunk.usageMetadata.candidatesTokenCount ?? outputTokens;
-        totalTokens = chunk.usageMetadata.totalTokenCount ?? totalTokens;
+        if (chunk.usageMetadata) {
+          inputTokens = chunk.usageMetadata.promptTokenCount ?? inputTokens;
+          outputTokens = chunk.usageMetadata.candidatesTokenCount ?? outputTokens;
+          totalTokens = chunk.usageMetadata.totalTokenCount ?? totalTokens;
+        }
       }
-    }
 
-    if (totalTokens > 0) {
-      onUsage?.({ inputTokens, outputTokens, totalTokens }, env.GEMINI_MODEL);
+      if (totalTokens > 0) {
+        onUsage?.(
+          { inputTokens, outputTokens, totalTokens },
+          env.GEMINI_MODEL
+        );
+      }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        /timeout|timed out|deadline/i.test(error.message)
+      ) {
+        throw new Error("AI request timed out");
+      }
+      throw error;
     }
   }
 
@@ -63,29 +84,39 @@ export class GeminiProvider implements AIProvider {
     const client = await this.getClient();
     const instructions = await this.readPrompt("categorize-ticket.v1.md");
 
-    const response = await client.models.generateContent({
-      model: env.GEMINI_MODEL,
-      contents: `${instructions}\n\nTicket:\n${JSON.stringify(ticket)}`,
-      config: {
-        responseMimeType: "application/json",
-        maxOutputTokens: 100,
-      },
-    });
+    try {
+      const response = await client.models.generateContent({
+        model: env.GEMINI_MODEL,
+        contents: `${instructions}\n\n<untrusted_ticket_data>\n${JSON.stringify(ticket)}\n</untrusted_ticket_data>`,
+        config: {
+          responseMimeType: "application/json",
+          maxOutputTokens: 100,
+        },
+      });
 
-    if (!response.text) {
-      throw new Error("Gemini returned an empty classification");
+      if (!response.text) {
+        throw new Error("Gemini returned an empty classification");
+      }
+
+      const usage = response.usageMetadata;
+
+      return {
+        data: response.text,
+        usage: {
+          inputTokens: usage?.promptTokenCount ?? 0,
+          outputTokens: usage?.candidatesTokenCount ?? 0,
+          totalTokens: usage?.totalTokenCount ?? 0,
+        },
+        model: env.GEMINI_MODEL,
+      };
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        /timeout|timed out|deadline/i.test(error.message)
+      ) {
+        throw new Error("AI request timed out");
+      }
+      throw error;
     }
-
-    const usage = response.usageMetadata;
-
-    return {
-      data: response.text,
-      usage: {
-        inputTokens: usage?.promptTokenCount ?? 0,
-        outputTokens: usage?.candidatesTokenCount ?? 0,
-        totalTokens: usage?.totalTokenCount ?? 0,
-      },
-      model: env.GEMINI_MODEL,
-    };
   }
 }

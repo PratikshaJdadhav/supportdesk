@@ -15,9 +15,10 @@ export class OpenAIProvider implements AIProvider {
       throw new Error("OPENAI_API_KEY is not configured");
     }
 
-    return new OpenAI({
-      apiKey: env.OPENAI_API_KEY,
-    });
+   return new OpenAI({
+  apiKey: env.OPENAI_API_KEY,
+  timeout: 30_000,
+});
   }
 
   private async readPrompt(fileName: string): Promise<string> {
@@ -37,7 +38,7 @@ export class OpenAIProvider implements AIProvider {
     const stream = await client.responses.create({
       model: env.OPENAI_MODEL,
       instructions,
-      input: JSON.stringify(ticket),
+      input: `<untrusted_ticket_data>\n${JSON.stringify(ticket)}\n</untrusted_ticket_data>`,
       stream: true,
       store: false,
       max_output_tokens: 300,
@@ -74,7 +75,7 @@ export class OpenAIProvider implements AIProvider {
     const response = await client.responses.create({
       model: env.OPENAI_MODEL,
       instructions,
-      input: JSON.stringify(ticket),
+      input: `<untrusted_ticket_data>\n${JSON.stringify(ticket)}\n</untrusted_ticket_data>`,
       text: {
         format: { type: "json_object" },
       },

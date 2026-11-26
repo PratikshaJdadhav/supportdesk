@@ -53,7 +53,7 @@ export const aiController = {
       } catch {
         if (!res.destroyed) {
           res.write(
-            `data: ${JSON.stringify({ error: "Reply generation interrupted" })}\n\n`,
+            `data: ${JSON.stringify({ error: "AI unavailable — reply manually." })}\n\n`,
           );
           res.end();
         }

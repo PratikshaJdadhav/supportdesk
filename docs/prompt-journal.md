@@ -122,3 +122,13 @@
 - AI provider remains in mock mode. Live OpenAI integration requires approved credentials.
 - AI usage cost remains unpriced until official model pricing is configured.
 - Jest reported an open-handle warning after tests completed; follow-up investigation pending.
+
+### Entry 12 – Day 17 AI Guardrails
+- **Date:** 26 November 2026
+- **Task:** Improved AI security and reliability.
+- **Changes:** Added prompt injection instructions, untrusted ticket data handling, PII masking, Zod output validation, provider timeouts, and AI API rate limiting.
+- **Fallback:** Added a manual-reply fallback when AI is unavailable.
+- **Verification:** AI evaluation passed 20/20 (100%). Jest passed 13 test suites and 68 tests.
+- **Documentation:** Added 10 malicious prompt injection test cases in `injection-test-report.md`.
+- **Pending:** Actual verification of all 10 injection cases, moderation behaviour, and targeted PII tests.
+- **Learning:** Learned AI input protection, PII masking, output validation, and provider error handling.

@@ -10,6 +10,7 @@ import type {
 import { ticketClassificationSchema } from "./schemas/ticket-ai.schema";
 import { ticketRepository } from "../repositories/ticketRepository";
 import { commentRepository } from "../repositories/commentRepository";
+import { maskPII } from "./pii-masker";
 
 function createProvider(): AIProvider {
   if (env.AI_PROVIDER === "gemini") {
@@ -29,6 +30,15 @@ function createProvider(): AIProvider {
   return new MockAIProvider();
 }
 
+const MAX_TITLE_LENGTH = 200;
+const MAX_DESCRIPTION_LENGTH = 4000;
+const MAX_COMMENT_LENGTH = 1000;
+const MAX_COMMENTS = 10;
+
+function truncate(value: string, max: number): string {
+  return value.length > max ? value.slice(0, max) : value;
+}
+
 const provider: AIProvider = createProvider();
 
 export const aiService = {
@@ -39,9 +49,11 @@ export const aiService = {
     const comments = await commentRepository.findLatestByTicketId(ticketId);
 
     return {
-      title: ticket.title,
-      description: ticket.description,
-      comments: comments.map((comment) => comment.message),
+      title: truncate(ticket.title, MAX_TITLE_LENGTH),
+      description: truncate(ticket.description, MAX_DESCRIPTION_LENGTH),
+      comments: comments
+        .slice(0, MAX_COMMENTS)
+        .map((comment) => truncate(comment.message, MAX_COMMENT_LENGTH)),
     };
   },
 
@@ -49,7 +61,13 @@ export const aiService = {
     ticket: TicketContext,
     onUsage?: AIUsageCallback
   ) {
-    yield* provider.suggestReply(ticket, onUsage);
+    const maskedTicket: TicketContext = {
+      title: maskPII(ticket.title),
+      description: maskPII(ticket.description),
+      comments: ticket.comments.map((comment) => maskPII(comment)),
+    };
+
+    yield* provider.suggestReply(maskedTicket, onUsage);
   },
 
   async classifyTicket(ticketId: number) {
@@ -57,8 +75,8 @@ export const aiService = {
     if (!ticket) return null;
 
     const result = await provider.classifyTicket({
-      title: ticket.title,
-      description: ticket.description,
+      title: maskPII(ticket.title),
+      description: maskPII(ticket.description),
     });
 
     let parsedOutput: unknown;
