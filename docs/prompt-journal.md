@@ -124,11 +124,21 @@
 - Jest reported an open-handle warning after tests completed; follow-up investigation pending.
 
 ### Entry 12 – Day 17 AI Guardrails
-- **Date:** 26 November 2026
-- **Task:** Improved AI security and reliability.
-- **Changes:** Added prompt injection instructions, untrusted ticket data handling, PII masking, Zod output validation, provider timeouts, and AI API rate limiting.
-- **Fallback:** Added a manual-reply fallback when AI is unavailable.
-- **Verification:** AI evaluation passed 20/20 (100%). Jest passed 13 test suites and 68 tests.
-- **Documentation:** Added 10 malicious prompt injection test cases in `injection-test-report.md`.
-- **Pending:** Actual verification of all 10 injection cases, moderation behaviour, and targeted PII tests.
-- **Learning:** Learned AI input protection, PII masking, output validation, and provider error handling.
+
+- Date: 26 November 2026
+- Task: Implemented AI security and reliability features.
+- Prompt Injection: Added protection against malicious instructions.
+- Untrusted Content: Treated ticket data as untrusted input.
+- PII Masking: Added email, mobile and Aadhaar masking.
+- Zod Validation: Added AI output validation.
+- Rate Limiting: Limited AI API requests.
+- Timeout: Added timeout handling for Gemini and OpenAI.
+- Fallback: Added manual reply fallback when AI is unavailable.
+- PII Tests: 4/4 PASS.
+- Classification Injection Tests: 10/10 PASS.
+- Suggest Reply Injection Tests: 10/10 safe responses.
+- AI Evaluation: 20/20 PASS (100% accuracy).
+- Jest Tests: 13 suites, 68 tests PASS.
+- Build: PASS.
+- Documentation: Updated injection-test-report.md.
+- Learning: Learned AI security, prompt injection protection, PII masking and output validation.

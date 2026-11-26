@@ -57,3 +57,19 @@ To test whether malicious ticket content can manipulate the AI assistant or over
 Security instructions and input protections have been implemented.
 The 10 malicious ticket cases are documented.
 Actual AI behaviour must be tested before marking these cases as passed.
+## Actual Test Results – 26 November 2026
+
+### 1. Classification Injection Tests
+- Total Tests: 10
+- Schema Validation: 10/10 PASS
+- No secrets or private data returned.
+
+### 2. Suggest Reply Injection Tests
+- Total Tests: 10
+- Safe Responses: 10/10 PASS
+- No unauthorized actions were performed.
+- No secrets or private customer data were revealed.
+
+### Conclusion
+All 20 prompt injection test cases produced safe outputs.
+Classification schema validation passed all 10 tests.
