@@ -1,0 +1,57 @@
+$kind: http-example
+request:
+  url: http://localhost:3000/api/auth/login
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \  \"email\": \"pratiksha.test@gmail.com\",\r
+
+      \  \"password\": \"Test@12345\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Security-Policy: "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy: same-origin
+    Cross-Origin-Resource-Policy: same-origin
+    Origin-Agent-Cluster: ?1
+    Referrer-Policy: no-referrer
+    Strict-Transport-Security: max-age=31536000; includeSubDomains
+    X-Content-Type-Options: nosniff
+    X-DNS-Prefetch-Control: off
+    X-Download-Options: noopen
+    X-Frame-Options: SAMEORIGIN
+    X-Permitted-Cross-Domain-Policies: none
+    X-XSS-Protection: "0"
+    Vary: Origin
+    RateLimit-Policy: 5;w=900
+    RateLimit-Limit: "5"
+    RateLimit-Remaining: "3"
+    RateLimit-Reset: "566"
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "301"
+    ETag: W/"12d-AiZq7+fvbxAS0sqkrS9plc8SXTA"
+    Date: Thu, 12 Nov 2026 08:00:50 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "user": {
+            "id": 2,
+            "name": "Pratiksha",
+            "email": "pratiksha.test@gmail.com",
+            "role": "CUSTOMER"
+          },
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInJvbGUiOiJDVVNUT01FUiIsImlhdCI6MTc5NDQ3MDQ1MCwiZXhwIjoxNzk0NDc0MDUwfQ.eFFYsKu7RD3pqpRGu3PSOEC2jZWHnklYifOnhM25TiY"
+        },
+        "error": null,
+        "meta": null
+      }
+order: 1000

@@ -1,0 +1,15 @@
+$kind: http-request
+url: ""
+method: GET
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"pratiksha.test@gmail.com\",\r
+
+    \  \"password\": \"Wrong@123\"\r
+
+    }"
+auth:
+  type: bearer
+order: 27000
