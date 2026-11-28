@@ -20,3 +20,4 @@ Review this pull request and identify potential bugs, security issues, and perfo
 ## 5. API Documentation Prompt
 
 Generate professional API documentation for the following Express.js route, including request/response examples.
+
